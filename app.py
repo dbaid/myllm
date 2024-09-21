@@ -1,9 +1,7 @@
 import os
-import sys
-import configparser
+
 from flask import Flask, request, abort
 import os
-
 from linebot.v3 import (
     WebhookHandler
 )
@@ -22,23 +20,11 @@ from linebot.v3.webhooks import (
     TextMessageContent
 )
 
-# #Config Parser
-# config = configparser.ConfigParser()
-# config.read('config.ini')
-# token = config['Line']['CHANNEL_ACCESS_TOKEN'] 
-token =os.getenv('CHANNEL_ACCESS_TOKEN')     
-if token is None:
-    print("Specify os.getenv('CHANNEL_ACCESS_TOKEN')   as environment variable.")
-    sys.exit(1)
-# secret = config['Line']['CHANNEL_SECRET']     
-secret = os.getenv('CHANNEL_SECRET')      
-if token is None:
-    print("Specify  os.getenv('CHANNEL_SECRET')    as environment variable.")
-    sys.exit(1)
+
 
 user_action = {}
-configuration = Configuration(access_token=token)
-line_handler = WebhookHandler(secret)
+configuration = Configuration(access_token=os.getenv('token'))
+line_handler = WebhookHandler(os.getenv('secret'))
 
 app = Flask(__name__)
 
