@@ -13,11 +13,20 @@ from linebot.v3.messaging import (
     ApiClient,
     MessagingApi,
     ReplyMessageRequest,
-    TextMessage
+    TextMessage,
+    QuickReply,
+    QuickReplyItem,
+    PostbackAction,
+    MessageAction,
+    DatetimePickerAction,
+    CameraAction,
+    CameraRollAction,
+    LocationAction     
 )
 from linebot.v3.webhooks import (
     MessageEvent,
-    TextMessageContent
+    TextMessageContent,
+    PostbackEvent
 )
 
 
@@ -42,10 +51,6 @@ def callback():
     return 'OK'
 
 import llm_test
-def get_line_bot_api():  
-    with ApiClient(configuration) as api_client:        
-        line_bot_api = MessagingApi(api_client) 
-    return line_bot_api  
 
 @line_handler.add(MessageEvent, message=TextMessageContent)
 def handle_message(event):
@@ -56,66 +61,11 @@ def handle_message(event):
     user_message = event.message.text
     print(user_message)
     llm=llm_test.LLMOperation()
-    if user_message=='@math':
-        # action = '1'
-        user_action[event.source.user_id] = '1'
-        # print("Action: ", user_action)
-        showmath(event)
-    elif user_message=='@translate2eng':
-        user_action.update({event.source.user_id: '2'})
-        # print("Action: ", user_action)
-        showtrans2eng(event)
-    elif user_message=='@sappro':
-        user_action.update({event.source.user_id: '3'})
-        # print("Action: ", user_action)
-        showtsappro(event)    
-    else:
-        if event.source.user_id in user_action:
-            if user_action[event.source.user_id] == '1':
-                print("Action: ", user_action)
-                resp=llm.domath(user_message)['answer'].replace('Answer: ','').replace('*','')
-                if resp is not None:     
-                    try:
-                        line_bot_api.reply_message_with_http_info(
-                            ReplyMessageRequest(
-                                reply_token=event.reply_token,
-                                messages=[TextMessage(text=resp)]
-                            )
-                        )
-                    except Exception as e:
-                        app.logger.error(f"Error replying message: {str(e)}")
-                user_action.update({event.source.user_id: ''})
-            elif user_action[event.source.user_id] == '2':
-                print("Action: ", user_action)
-                resp=llm.translate2eng(user_message)
-                if resp is not None:     
-                    try:
-                        line_bot_api.reply_message_with_http_info(
-                            ReplyMessageRequest(
-                                reply_token=event.reply_token,
-                                messages=[TextMessage(text=resp)]
-                            )
-                        )
-                    except Exception as e:
-                        app.logger.error(f"Error replying message: {str(e)}")
-                user_action.update({event.source.user_id: ''})
-            elif user_action[event.source.user_id] == '3':
-                print("Action: ", user_action)
-                resp=llm.japan_sappro(user_message).replace('*','')
-                if resp is not None:     
-                    try:
-                        line_bot_api.reply_message_with_http_info(
-                            ReplyMessageRequest(
-                                reply_token=event.reply_token,
-                                messages=[TextMessage(text=resp)]
-                            )
-                        )
-                    except Exception as e:
-                        app.logger.error(f"Error replying message: {str(e)}")
-                user_action.update({event.source.user_id: ''})
-            else:
-                print("Action: ", user_action)
-                resp=llm.normalqry(user_message).replace('*','')
+    if event.source.user_id in user_action:
+        if user_action[event.source.user_id] == '1':
+            print("Action: ", user_action)
+            resp=llm.domath(user_message)['answer'].replace('Answer: ','').replace('*','')
+            if resp is not None:     
                 try:
                     line_bot_api.reply_message_with_http_info(
                         ReplyMessageRequest(
@@ -124,10 +74,38 @@ def handle_message(event):
                         )
                     )
                 except Exception as e:
-                    app.logger.error(f"Error replying message--final: {str(e)}")
-        else:
+                    app.logger.error(f"Error replying message: {str(e)}")
             user_action.update({event.source.user_id: ''})
-            print("Without 圖文選單: ", user_action)
+        elif user_action[event.source.user_id] == '2':
+            print("Action: ", user_action)
+            resp=llm.translate2eng(user_message)
+            if resp is not None:     
+                try:
+                    line_bot_api.reply_message_with_http_info(
+                        ReplyMessageRequest(
+                            reply_token=event.reply_token,
+                            messages=[TextMessage(text=resp)]
+                        )
+                    )
+                except Exception as e:
+                    app.logger.error(f"Error replying message: {str(e)}")
+            user_action.update({event.source.user_id: ''})
+        elif user_action[event.source.user_id] == '3':
+            print("Action: ", user_action)
+            resp=llm.japan_sappro(user_message).replace('*','')
+            if resp is not None:     
+                try:
+                    line_bot_api.reply_message_with_http_info(
+                        ReplyMessageRequest(
+                            reply_token=event.reply_token,
+                            messages=[TextMessage(text=resp)]
+                        )
+                    )
+                except Exception as e:
+                    app.logger.error(f"Error replying message: {str(e)}")
+            user_action.update({event.source.user_id: ''})
+        elif  user_action[event.source.user_id] == '4':
+            print("Action: ", user_action)
             resp=llm.normalqry(user_message).replace('*','')
             try:
                 line_bot_api.reply_message_with_http_info(
@@ -138,57 +116,139 @@ def handle_message(event):
                 )
             except Exception as e:
                 app.logger.error(f"Error replying message--final: {str(e)}")
-
-def showmath(event):
-    global user_action
-    line_bot_api = get_line_bot_api()
-    print("Action: ", user_action)
-    text1 = '請輸入數學運算式，即可得到計算結果。例如：18的平方根是多少？'
-    try:
-        line_bot_api.reply_message_with_http_info(
+            user_action.update({event.source.user_id: ''})
+        else:
+            quickReply = QuickReply(
+                items=[
+                    QuickReplyItem(
+                        action=PostbackAction(
+                            label="數學問題",
+                            data="1",
+                            display_text="數學問題"
+                        ),
+                        # image_url=postback_icon
+                    ),
+                    QuickReplyItem(
+                        action=PostbackAction(
+                            label="中翻英",
+                            data="2",
+                            display_text="中翻英"
+                        ),
+                        # image_url=message_icon
+                    ),
+                    QuickReplyItem(
+                        action=PostbackAction(
+                            label="北海道自由行諮詢",
+                            data="3",
+                            display_text="北海道自由行諮詢"
+                        ),
+                        # image_url=date_icon
+                    ),
+                    QuickReplyItem(
+                        action=PostbackAction(
+                            label="純閒聊,亂哈拉",
+                            data="4",
+                            display_text="純閒聊,亂哈拉"
+                        ),
+                        #  image_url=time_icon
+                    ),
+                ]
+            )
+            line_bot_api.reply_message(
+                ReplyMessageRequest(
+                    reply_token=event.reply_token,
+                    messages=[TextMessage(
+                        text='您好,我是國生家的AI小幫手,需什麼樣的協助呢? 請選擇項目: ',
+                        quick_reply=quickReply
+                    )]
+                )
+            )                
+    else:
+        quickReply = QuickReply(
+            items=[
+                QuickReplyItem(
+                    action=PostbackAction(
+                        label="數學問題",
+                        data="1",
+                        display_text="數學問題"
+                    ),
+                    # image_url=postback_icon
+                ),
+                QuickReplyItem(
+                    action=PostbackAction(
+                        label="中翻英",
+                        data="2",
+                        display_text="中翻英"
+                    ),
+                    # image_url=message_icon
+                ),
+                QuickReplyItem(
+                    action=PostbackAction(
+                        label="北海道自由行諮詢",
+                        data="3",
+                        display_text="北海道自由行諮詢"
+                    ),
+                    # image_url=date_icon
+                ),
+                QuickReplyItem(
+                    action=PostbackAction(
+                        label="純閒聊,亂哈拉",
+                        data="4",
+                        display_text="純閒聊,亂哈拉"
+                    ),
+                    #  image_url=time_icon
+                ),
+            ]
+        )
+        line_bot_api.reply_message(
             ReplyMessageRequest(
                 reply_token=event.reply_token,
-                messages=[TextMessage(text=text1)]
+                messages=[TextMessage(
+                    text='您好,我是國生家的AI小幫手,需什麼樣的協助呢? 請選擇項目: ',
+                    quick_reply=quickReply
+                )]
             )
         )
-    except Exception as e:
-        app.logger.error(f"Error replying message: {str(e)}")
 
-def showtrans2eng(event):
-    global user_action
-    line_bot_api = get_line_bot_api()
-    print("Action: ", user_action)
-    text1 = '請輸入您想翻譯成英文的中文句子'
-    try:
-        line_bot_api.reply_message_with_http_info(
-            ReplyMessageRequest(
-                reply_token=event.reply_token,
-                messages=[TextMessage(text=text1)]
+@line_handler.add(PostbackEvent)
+def handle_postback(event):
+    with ApiClient(configuration) as api_client:
+        line_bot_api = MessagingApi(api_client)
+        postback_data = event.postback.data
+        if postback_data == '1':
+            user_action[event.source.user_id] = '1'
+            line_bot_api.reply_message(
+                ReplyMessageRequest(
+                    reply_token=event.reply_token,
+                    messages=[TextMessage(text='請輸入數學運算式，即可得到計算結果。例如：18的平方根是多少？')]
+                )
             )
-        )
-    except Exception as e:
-        app.logger.error(f"Error replying message: {str(e)}")
-
-def showtsappro(event):
-    global user_action
-    line_bot_api = get_line_bot_api()
-    print("Action: ", user_action)
-    text1 = '我是北海道的自助旅行小幫手,有什麼能幫上您的嗎？'
-    try:
-        line_bot_api.reply_message_with_http_info(
-            ReplyMessageRequest(
-                reply_token=event.reply_token,
-                messages=[TextMessage(text=text1)]
+        elif postback_data == '2':
+            user_action[event.source.user_id] = '2'
+            line_bot_api.reply_message(
+                ReplyMessageRequest(
+                    reply_token=event.reply_token,
+                    messages=[TextMessage(text='請輸入您想翻譯成英文的中文句子')]
+                )
             )
-        )
-    except Exception as e:
-        app.logger.error(f"Error replying message: {str(e)}")
+        elif postback_data == '3':
+            user_action[event.source.user_id] = '3'
+            line_bot_api.reply_message(
+                ReplyMessageRequest(
+                    reply_token=event.reply_token,
+                    messages=[TextMessage(text='我是北海道的自助旅行小幫手,有什麼能幫上您的嗎？')]
+                )
+            )
+        elif postback_data == '4':
+            user_action[event.source.user_id] = '4'
+            line_bot_api.reply_message(
+                ReplyMessageRequest(
+                    reply_token=event.reply_token,
+                    messages=[TextMessage(text='您想聊啥呢?')]
+                )
+            )
 
-# def get_line_bot_api():  
-#     with ApiClient(configuration) as api_client:  
-#         line_bot_api = MessagingApi(api_client)  
-      
-#     return line_bot_api  
+
 
 if __name__ == "__main__":
     port = int(os.environ.get('PORT', 5000))
