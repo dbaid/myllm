@@ -55,42 +55,7 @@ import llm_test
 @line_handler.add(MessageEvent, message=TextMessageContent)
 def handle_message(event):
     global user_action
-    # quickReply = QuickReply(
-    #     items=[
-    #         QuickReplyItem(
-    #             action=PostbackAction(
-    #                 label="數學問題",
-    #                 data="1",
-    #                 display_text="數學問題"
-    #             ),
-    #             # image_url=postback_icon
-    #         ),
-    #         QuickReplyItem(
-    #             action=PostbackAction(
-    #                 label="中翻英",
-    #                 data="2",
-    #                 display_text="中翻英"
-    #             ),
-    #             # image_url=message_icon
-    #         ),
-    #         QuickReplyItem(
-    #             action=PostbackAction(
-    #                 label="北海道自由行諮詢",
-    #                 data="3",
-    #                 display_text="北海道自由行諮詢"
-    #             ),
-    #             # image_url=date_icon
-    #         ),
-    #         QuickReplyItem(
-    #             action=PostbackAction(
-    #                 label="純閒聊,亂哈拉",
-    #                 data="4",
-    #                 display_text="純閒聊,亂哈拉"
-    #             ),
-    #             #  image_url=time_icon
-    #         ),
-    #     ]
-    # )
+
     with ApiClient(configuration) as api_client:        
         line_bot_api = MessagingApi(api_client)  
     user_message = event.message.text
@@ -154,26 +119,10 @@ def handle_message(event):
             user_action.update({event.source.user_id: ''})
         else:
             SendMyDefaulQuickReply(event)
-            # line_bot_api.reply_message(
-            #     ReplyMessageRequest(
-            #         reply_token=event.reply_token,
-            #         messages=[TextMessage(
-            #             text='您好,我是國生家的AI小幫手,需什麼樣的協助呢? 請選擇項目: ',
-            #             quick_reply=quickReply
-            #         )]
-            #     )
-            # )                
+            
     else:
         SendMyDefaulQuickReply(event)
-        # line_bot_api.reply_message(
-        #     ReplyMessageRequest(
-        #         reply_token=event.reply_token,
-        #         messages=[TextMessage(
-        #             text='您好,我是國生家的AI小幫手,需什麼樣的協助呢? 請選擇項目: ',
-        #             quick_reply=quickReply
-        #         )]
-        #     )
-        # )
+
 
 @line_handler.add(PostbackEvent)
 def handle_postback(event):
