@@ -4,6 +4,7 @@
 ### 2.Langchain
 ### 3.LineBot SDK
 ### 4.OpenAI 3.5 Turbo
+### 5.Flask
 ## 協助幫忙處理以下三個事項
 ### 1.數學問題 
 ### 2.中翻英
