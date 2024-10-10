@@ -3,6 +3,7 @@ import sys
 # import configparser
 import os
 from langchain_openai import ChatOpenAI
+from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import PromptTemplate
 class LLMOperation:
     def __init__(self):
@@ -15,16 +16,12 @@ class LLMOperation:
             print("Specify os.getenv('API_KEY') as environment variable.")
             sys.exit(1)
 
-        # 。self.endpoint = config['Openai']['ENDPOINT']     
-        self.endpoint = os.getenv('ENDPOINT')  
-        if self.endpoint is None:
-            print("Specify  os.getenv('ENDPOINT') as environment variable.")
-            sys.exit(1)
 
-        self.chat = ChatOpenAI(model="gpt-3.5-turbo",
-            openai_api_base=self.endpoint,
-            openai_api_key=self.key
-        )
+        self.chat = ChatGoogleGenerativeAI(
+                model="gemini-1.5-flash-latest", 
+                google_api_key=self.key,
+                convert_system_message_to_human=True
+                )
     # 這個語意判斷不夠好，所以先不用,因為都只output True
     # def ifmath(self,question):
     #     # from langchain_core.prompts import PromptTemplate
