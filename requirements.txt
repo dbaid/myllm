@@ -1,0 +1,5 @@
+langchain
+line-bot-sdk
+flask
+numexpr
+langchain_google_genai
